@@ -248,45 +248,82 @@ app.get('/user/overview',function(request,response){
 	var sensor = request.query.sensor;
 	username = username.toLowerCase();
 	sensor = sensor.toLowerCase();
-	MongoClient.connect(url,function(err,db){
-		if(!err){
-			console.log("We are connected");
-		}
-
-		function createObject(propName, propValue){
-			this[propName] = propValue;
-		  }
-	    var soundQuery = new createObject(sensor,{$exists:true});
-	    soundQuery.username=username;
-
-		var collection = db.collection('sensor');
-		var uniqueDate = new Array();
-
-		collection.find(soundQuery,{_id:0,time:0}).toArray(function(err,data){
-			if(data.length==0)
-			{
-				response.status(404).send({"Message":"No data!"});
-				db.close();
+	if(sensor == "motionrecord"){
+		MongoClient.connect(url,function(err,db){
+			if(!err){
+				console.log("We are connected");
 			}
-			else
-			{
-				var date = new Array();
-				for(i=0;i<data.length;i++){
-					date.push(data[i]['date'])
+
+			function createObject(propName, propValue){
+				this[propName] = propValue;
+			  }
+		    var soundQuery = new createObject(sensor,{$exists:true});
+		    soundQuery.username=username;
+
+			var collection = db.collection('motiondatas');
+			var uniqueDate = new Array();
+
+			collection.find(soundQuery,{_id:0,time:0}).toArray(function(err,data){
+				if(data.length==0)
+				{
+					response.status(404).send({"Message":"No data!"});
+					db.close();
 				}
+				else
+				{
+					var date = new Array();
+					for(i=0;i<data.length;i++){
+						date.push(data[i]['date'])
+					}
 
-				uniqueDate = date.filter(function(elem, pos) {
-				    return date.indexOf(elem) == pos;
-				});
+					uniqueDate = date.filter(function(elem, pos) {
+					    return date.indexOf(elem) == pos;
+					});
 
-				response.status(200).send(uniqueDate);
-				db.close();
-			}			
+					response.status(200).send(uniqueDate);
+					db.close();
+				}			
+			});	
 		});
-		
+	}
+	else{
+		MongoClient.connect(url,function(err,db){
+			if(!err){
+				console.log("We are connected");
+			}
 
-	});
+			function createObject(propName, propValue){
+				this[propName] = propValue;
+			  }
+		    var soundQuery = new createObject(sensor,{$exists:true});
+		    soundQuery.username=username;
 
+			var collection = db.collection('sensor');
+			var uniqueDate = new Array();
+
+			collection.find(soundQuery,{_id:0,time:0}).toArray(function(err,data){
+				if(data.length==0)
+				{
+					response.status(404).send({"Message":"No data!"});
+					db.close();
+				}
+				else
+				{
+					var date = new Array();
+					for(i=0;i<data.length;i++){
+						date.push(data[i]['date'])
+					}
+
+					uniqueDate = date.filter(function(elem, pos) {
+					    return date.indexOf(elem) == pos;
+					});
+
+					response.status(200).send(uniqueDate);
+					db.close();
+				}			
+			});
+		});
+	}
 });
 
 
@@ -294,33 +331,64 @@ app.get('/user/sensorData',function(request,response){
 	var username = request.query.username;
 	username = username.toLowerCase();
 	var sensor = request.query.sensor;						
-	MongoClient.connect(url, function(err, db) {			
-		  if(!err) {
-			console.log("We are connected");
-		  }
-		  
-		  function createObject(propName, propValue){
-			this[propName] = propValue;
-		  }
-		  var queryObject = new createObject(sensor,{$exists:true});
-		  queryObject.username=username;
-		  
-		  var collection = db.collection('sensor');
-		  collection.find(queryObject).toArray(function(err,docs){
-		  	if(docs.length==0)
-		  	{
-		  		response.status(204).send("No data");
-		  		db.close();
-
-		  	}
-		  	else
-		  	{
-		  		response.status(200).send(docs);
-			    db.close();
-		  	}
+	if(sensor == "motionrecord"){
+		MongoClient.connect(url, function(err, db) {			
+			  if(!err) {
+				console.log("We are connected");
+			  }
 			  
-		 });
-   });	
+			  function createObject(propName, propValue){
+				this[propName] = propValue;
+			  }
+			  var queryObject = new createObject(sensor,{$exists:true});
+			  queryObject.username=username;
+			  
+			  var collection = db.collection('motiondatas');
+			  collection.find(queryObject).toArray(function(err,docs){
+				  	if(docs.length==0)
+				  	{
+				  		response.status(204).send("No data");
+				  		db.close();
+
+				  	}
+				  	else
+				  	{
+				  		response.status(200).send(docs);
+					    db.close();
+				  	}
+				  
+			 });
+  		});	
+	}
+	else{
+		MongoClient.connect(url, function(err, db) {			
+			  if(!err) {
+				console.log("We are connected");
+			  }
+			  
+			  function createObject(propName, propValue){
+				this[propName] = propValue;
+			  }
+			  var queryObject = new createObject(sensor,{$exists:true});
+			  queryObject.username=username;
+			  
+			  var collection = db.collection('sensor');
+			  collection.find(queryObject).toArray(function(err,docs){
+				  	if(docs.length==0)
+				  	{
+				  		response.status(204).send("No data");
+				  		db.close();
+
+				  	}
+				  	else
+				  	{
+				  		response.status(200).send(docs);
+					    db.close();
+				  	}
+				  
+			 });
+  		});	
+	}
 });
 
 app.listen(3000,function(){
