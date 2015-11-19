@@ -1,10 +1,13 @@
 var express = require('express');
 var router = express.Router();
+var cron = require('cron');
 var mongoose = require('mongoose');
 var MongoClient = require('mongodb').MongoClient;
 
 //create a new collection  ===>  motiondatas   , which is userd to store new motion data.
-var motion_data_model=mongoose.model('motiondata',{
+
+var cronJob = cron.job("0 11 * * * *", function(){
+  var motion_data_model=mongoose.model('motiondata',{
   username:String,
   date: {
     type:String,
@@ -178,130 +181,6 @@ MongoClient.connect(url, function(err, db) {
 });
 
 
-        //search for nextday data start=========================================
-        //queryObject_nextday.username=ele.username;
-        //queryObject_nextday.date=nextday;
-        //sensor_collection.find(queryObject_nextday).toArray(function(err,docs){
-        //  console.log("next query",queryObject_nextday);
-        //      if(docs.length==0)
-        //      {
-        //        console.log("next day No data");
-        //      }
-        //      else
-        //      {
-        //        var nextday_data = docs.filter(function(element){
-        //          var hour = element.time.split(':')[0];
-        //          return hour < '11';   //will collect time before 11:00
-        //        });
-        //        console.log("the first data of nextday",nextday_data[0]);
-        //
-        //          var hourlist = ["01","02","03","04","05","06","07","08","09","10"];
-        //          var dataobj  ={
-        //            username:queryObject_nextday.username,
-        //            date:nextday,
-        //          }
-        //
-        //          for(var i =0; i<10;i++) {
-        //            var count = 0;
-        //            var eachhour_data = nextday_data.filter(function(element){
-        //              var hour = element.time.split(':')[0];
-        //              return hour == hourlist[i];
-        //            });
-        //            if(eachhour_data.length==0){
-        //              dataobj.time=hourlist[i];
-        //              dataobj.motionrecord=0;
-        //              (new motion_data_model(dataobj)).save();
-        //            }else{
-        //              var eachhour_data_afterprocess = [];
-        //              eachhour_data.reduce(function (first, second) {
-        //                eachhour_data_afterprocess.push(second.motionrecord - first.motionrecord);
-        //                return second;
-        //              });
-        //              var avg_stdDev = standardDeviation(eachhour_data_afterprocess);
-        //              console.log("next day",avg_stdDev);
-        //
-        //              eachhour_data_afterprocess.forEach(function(element){
-        //                if(element > avg_stdDev[0] + avg_stdDev[1] || element < avg_stdDev[0] - avg_stdDev[1]){
-        //                  count++
-        //                };
-        //              });
-        //              dataobj.time=hourlist[i];
-        //              dataobj.motionrecord=count;
-        //              (new motion_data_model(dataobj)).save();
-        //
-        //            }
-        //          };
-        //
-        //      };
-        //});
-        //search for nextday data end=========================================
-
-
-        //search for thisday data start =====================================
-
-        //search this day data start =======================================
-        //queryObject_thisday.username=ele.username;
-        //queryObject_thisday.date=thisday;
-        //sensor_collection.find(queryObject_thisday).toArray(function(err,docs){
-        //  console.log("this query",queryObject_thisday);
-        //  if(docs.length==0)
-        //  {
-        //    console.log("this day No data");
-        //  }
-        //  else
-        //  {
-        //    var thisday_data = docs.filter(function(element){
-        //      var hour = element.time.split(':')[0];
-        //
-        //      return hour > '19';    //will collect time after 20:00
-        //    });
-        //    console.log("the first data of thisday",thisday_data[0]);
-        //
-        //
-        //
-        //        var hourlist = ["20","21","22","23","24"];
-        //        var dataobj  ={
-        //          username:queryObject_thisday.username,
-        //          date:thisday,
-        //        }
-        //
-        //        for(var i =0; i<5;i++) {
-        //          var count = 0;
-        //          var eachhour_data = thisday_data.filter(function(element){
-        //            var hour = element.time.split(':')[0];
-        //            return hour == hourlist[i];
-        //          });
-        //          if(eachhour_data.length==0){
-        //            dataobj.time=hourlist[i];
-        //            dataobj.motionrecord=0;
-        //            (new motion_data_model(dataobj)).save();
-        //          }else{
-        //            var eachhour_data_afterprocess = [];
-        //            eachhour_data.reduce(function (first, second) {
-        //              eachhour_data_afterprocess.push(second.motionrecord - first.motionrecord);
-        //              return second;
-        //            });
-        //            var avg_stdDev = standardDeviation(eachhour_data_afterprocess);
-        //            console.log("this day",avg_stdDev);
-        //
-        //            eachhour_data_afterprocess.forEach(function(element){
-        //              if(element > avg_stdDev[0] + avg_stdDev[1] || element < avg_stdDev[0] - avg_stdDev[1]){
-        //                count++
-        //              };
-        //            });
-        //            dataobj.time=hourlist[i];
-        //            dataobj.motionrecord=count;
-        //            (new motion_data_model(dataobj)).save();
-        //          }
-        //        };
-        //
-        //
-        //  }
-        //});
-
-
-
-
 
 function standardDeviation(values){
   var avg = average(values);
@@ -333,3 +212,7 @@ module.exports = router;
 
 
 
+ console.info('cron job completed');
+}); 
+
+cronJob.start();
