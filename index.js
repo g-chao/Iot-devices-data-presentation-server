@@ -42,10 +42,12 @@ MongoClient.connect(url, function(err, db) {
     return [pad(d.getMonth()+1),pad(d.getDate()), d.getFullYear()].join('/');
   }
 
-  var nextday=convertDate(currentDate);
-  var thisday=convertDate(previousDate);
-  console.log(nextday);
-  console.log(thisday);
+  var today=convertDate(currentDate);
+  var yesterday=convertDate(previousDate);
+  //test----------------------------------------
+  console.log(today);
+  console.log(yesterday);
+  //test---------------------------------------
 //time========================end=======================
   var user_collection = db.collection('user');
   var sensor_collection = db.collection('sensor');
@@ -56,41 +58,43 @@ MongoClient.connect(url, function(err, db) {
       users.forEach(function(ele){
         console.log("username", ele.username);
 
-        // execute the two sleep data for nextday and thisday !!!!!!!!!!!! important
-        process_nextday_data.call(this,ele.username,nextday);
-        process_thisday_data.call(this,ele.username,thisday);
+        // execute the two sleep data for today and yesterday !!!!!!!!!!!! important
+        process_nextday_data.call(this,ele.username,today);
+        process_thisday_data.call(this,ele.username,yesterday);
         // !!!!!!!!!!!! important
 
-        function process_nextday_data(username,nextday){
-          var queryObject_nextday = new createObject("motionrecord",{$exists:true});
-          queryObject_nextday.username=username;
-          queryObject_nextday.date=nextday;
-          sensor_collection.find(queryObject_nextday).toArray(function(err,docs){
-            console.log("next query",queryObject_nextday);
+        function process_nextday_data(username,today){
+          var queryObject_today = new createObject("motionrecord",{$exists:true});
+          queryObject_today.username=username;
+          queryObject_today.date=today;
+          sensor_collection.find(queryObject_today).toArray(function(err,docs){
+            console.log("today query",queryObject_today);
             if(docs.length==0)
             {
-              console.log("next day No data");
+              console.log("today No data");
             }
             else
             {
-              var nextday_data = docs.filter(function(element){
+              var today_data = docs.filter(function(element){
                 var hour = element.time.split(':')[0];
                 return hour < '11';   //will collect time before 11:00
               });
-              console.log("the first data of nextday",nextday_data[0]);
+              console.log("the first data of today",today_data[0]);
 
-              var hourlist = ["01","02","03","04","05","06","07","08","09","10"];
+              var hourlist = [new Date(today+" 00:00:00"),new Date(today+" 01:00:00"),new Date(today+" 02:00:00"),new Date(today+" 03:00:00"),new Date(today+" 04:00:00"),
+                new Date(today+" 05:00:00"),new Date(today+" 06:00:00"),new Date(today+" 07:00:00"),new Date(today+" 08:00:00"),new Date(today+" 09:00:00"),new Date(today+" 10:00:00")];
+              //11/19/2015 01:00:00
               var dataobj  ={
-                username:queryObject_nextday.username,
-                date:nextday,
+                username:queryObject_today.username,
+                date:today,
               }
-
-              for(var i =0; i<10;i++) {
+              for(var i =0; i<11;i++) {
                 var count = 0;
-                var eachhour_data = nextday_data.filter(function(element){
+                var eachhour_data = today_data.filter(function(element){
                   var hour = element.time.split(':')[0];
-                  return hour == hourlist[i];
+                  return hour == hourlist[i].toString().split(" ")[4].split(":")[0];
                 });
+                console.log('eachhour_data length '+ hourlist[i].toString().split(" ")[4].split(":")[0], eachhour_data.length);
                 if(eachhour_data.length==0){
                   dataobj.time=hourlist[i];
                   dataobj.motionrecord=0;
@@ -101,52 +105,55 @@ MongoClient.connect(url, function(err, db) {
                     eachhour_data_afterprocess.push(second.motionrecord - first.motionrecord);
                     return second;
                   });
+                  console.log("firstdata of afterprocess", eachhour_data_afterprocess[0]);
                   var avg_stdDev = standardDeviation(eachhour_data_afterprocess);
-                  console.log("next day",avg_stdDev);
+                  console.log("today "+ hourlist[i].toString().split(" ")[4].split(":")[0],avg_stdDev);
 
                   eachhour_data_afterprocess.forEach(function(element){
                     if(element > avg_stdDev[0] + avg_stdDev[1] || element < avg_stdDev[0] - avg_stdDev[1]){
                       count++
                     };
                   });
+                  console.log("today "+ hourlist[i].toString().split(" ")[4].split(":")[0], count)
                   dataobj.time=hourlist[i];
                   dataobj.motionrecord=count;
+
                   (new motion_data_model(dataobj)).save();
                 }
               };
             };
           });
         }
-        function process_thisday_data(username,thisday){
-          var queryObject_thisday = new createObject("motionrecord",{$exists:true});
-          queryObject_thisday.username=username;
-          queryObject_thisday.date=thisday;
-          sensor_collection.find(queryObject_thisday).toArray(function(err,docs){
-            console.log("this query",queryObject_thisday);
+        function process_thisday_data(username,yesterday){
+          var queryObject_yesterday = new createObject("motionrecord",{$exists:true});
+          queryObject_yesterday.username=username;
+          queryObject_yesterday.date=yesterday;
+          sensor_collection.find(queryObject_yesterday).toArray(function(err,docs){
+            console.log("yesterday query",queryObject_yesterday);
             if(docs.length==0)
             {
-              console.log("this day No data");
+              console.log("yesterday No data");
             }
             else
             {
-              var thisday_data = docs.filter(function(element){
+              var yesterday_data = docs.filter(function(element){
                 var hour = element.time.split(':')[0];
 
                 return hour > '19';    //will collect time after 20:00
               });
-              console.log("the first data of thisday",thisday_data[0]);
+              console.log("the first data of yesterday",yesterday_data[0]);
 
-              var hourlist = ["20","21","22","23","24"];
+              var hourlist = [new Date(yesterday+" 20:00:00"),new Date(yesterday+" 21:00:00"),new Date(yesterday+" 22:00:00"),new Date(yesterday+" 23:00:00")];
               var dataobj  ={
-                username:queryObject_thisday.username,
-                date:thisday,
+                username:queryObject_yesterday.username,
+                date:yesterday,
               }
 
-              for(var i =0; i<5;i++) {
+              for(var i =0; i<4;i++) {
                 var count = 0;
-                var eachhour_data = thisday_data.filter(function(element){
+                var eachhour_data = yesterday_data.filter(function(element){
                   var hour = element.time.split(':')[0];
-                  return hour == hourlist[i];
+                  return hour == hourlist[i].toString().split(" ")[4].split(":")[0];
                 });
                 if(eachhour_data.length==0){
                   dataobj.time=hourlist[i];
@@ -159,13 +166,14 @@ MongoClient.connect(url, function(err, db) {
                     return second;
                   });
                   var avg_stdDev = standardDeviation(eachhour_data_afterprocess);
-                  console.log("this day",avg_stdDev);
+                  console.log("yesterday "+hourlist[i].toString().split(" ")[4].split(":")[0], avg_stdDev);
 
                   eachhour_data_afterprocess.forEach(function(element){
                     if(element > avg_stdDev[0] + avg_stdDev[1] || element < avg_stdDev[0] - avg_stdDev[1]){
                       count++
                     };
                   });
+                  console.log("yesterday "+ hourlist[i].toString().split(" ")[4].split(":")[0], count)
                   dataobj.time=hourlist[i];
                   dataobj.motionrecord=count;
                   (new motion_data_model(dataobj)).save();
@@ -179,7 +187,6 @@ MongoClient.connect(url, function(err, db) {
     })
   });
 });
-
 
 
 function standardDeviation(values){
