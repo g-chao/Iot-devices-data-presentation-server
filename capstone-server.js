@@ -344,7 +344,7 @@ app.get('/user/sensorData',function(request,response){
 			  queryObject.username=username;
 			  
 			  var collection = db.collection('motiondatas');
-			  collection.find(queryObject).toArray(function(err,docs){
+			  collection.find(queryObject).sort({_id:1}).toArray(function(err,docs){
 				  	if(docs.length==0)
 				  	{
 				  		response.status(204).send("No data");
@@ -353,6 +353,12 @@ app.get('/user/sensorData',function(request,response){
 				  	}
 				  	else
 				  	{
+				  		/*console.log(typeof docs[0].time);
+				  		docs.sort(function(a,b){
+				  			return a.time - b.time
+				  		});
+				  		console.log(docs);
+				  		*/
 				  		response.status(200).send(docs);
 					    db.close();
 				  	}
@@ -376,12 +382,20 @@ app.get('/user/sensorData',function(request,response){
 			  collection.find(queryObject).toArray(function(err,docs){
 				  	if(docs.length==0)
 				  	{
+
 				  		response.status(204).send("No data");
 				  		db.close();
 
 				  	}
 				  	else
 				  	{
+				  		/*
+				  		console.log(docs);
+				  		docs.sort(function(a,b){
+				  			return a.time - b.time
+				  		});
+				  		console.log(docs);
+				  		*/
 				  		response.status(200).send(docs);
 					    db.close();
 				  	}
