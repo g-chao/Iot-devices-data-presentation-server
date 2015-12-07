@@ -404,7 +404,29 @@ app.get('/user/sensorData',function(request,response){
   		});	
 	}
 });
+app.get('/user/sleepQuality',function(request,response){
+	var username = request.query.username;
+	username = username.toLowerCase();
 
+	MongoClient.connect(url,function(err,db){
+		if(!err){
+			console.log("We are connected");
+		}
+		var collection = db.collection('sleep_qualities');
+		collection.find({username:username}).toArray(function(err,data){
+			if(data.length==0)
+			{
+				response.status(404).send({"Message":"No data!"});
+				db.close();
+			}
+			else
+			{
+				response.status(200).send(data);
+				db.close();
+			}			
+		});
+	});
+});
 app.listen(3000,function(){
         console.log('Listening on port 3000');
 });
