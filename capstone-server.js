@@ -253,7 +253,6 @@ app.get('/user/overview',function(request,response){
 			if(!err){
 				console.log("We are connected");
 			}
-
 			function createObject(propName, propValue){
 				this[propName] = propValue;
 			  }
@@ -280,6 +279,35 @@ app.get('/user/overview',function(request,response){
 					    return date.indexOf(elem) == pos;
 					});
 
+					response.status(200).send(uniqueDate);
+					db.close();
+				}			
+			});	
+		});
+	}
+	else if(sensor == "report"){
+		MongoClient.connect(url,function(err,db){
+			if(!err){
+				console.log("We are connected");
+			}
+			var collection = db.collection('sleep_qualities');
+			var uniqueDate = new Array();
+
+			collection.find({username:username}).toArray(function(err,data){
+				if(data.length==0)
+				{
+					response.status(404).send({"Message":"No report data!"});
+					db.close();
+				}
+				else
+				{
+					var date = new Array();
+					for(i=0;i<data.length;i++){
+						date.push(data[i]['date'])
+					}
+					uniqueDate = date.filter(function(elem, pos) {
+					    return date.indexOf(elem) == pos;
+					});
 					response.status(200).send(uniqueDate);
 					db.close();
 				}			
