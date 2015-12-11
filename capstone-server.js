@@ -36,8 +36,6 @@ app.get('/',function(request,response){
 
 
 app.post('/user/login',function(request,response){
-
-	
 	if (request.method == 'POST') {
         var body = '';
         request.on('data', function (data) {
@@ -104,6 +102,72 @@ app.get('/user/profile',function(request,response){
 		});
 	});
 
+});
+
+app.post('/user/Checkusername',function(request,response){
+
+	if (request.method == 'POST') {
+        var body = '';
+        request.on('data', function (data) {
+            body += data;
+            if (body.length > 1e6)
+                request.connection.destroy();
+        });
+        request.on('end', function () {
+            var post = qs.parse(body);
+        });
+    }
+    var username = request.body['username'];
+	username = username.toLowerCase();
+	MongoClient.connect(url,function(err,db){
+		if(!err){
+			console.log("We are connected");
+		}
+		var collection = db.collection('user');
+		collection.find({username:username}).toArray(function(err,data){
+			if(data.length != 0){
+				response.status(404).send({"Message":"Username exists"});
+				db.close();
+			}
+			else{
+				response.status(200).send({"Message":"Ready for registeration"});
+				db.close();
+			}	
+		});
+	});
+});
+
+
+app.post('/user/checkEmail',function(request,response){
+
+	if (request.method == 'POST') {
+        var body = '';
+        request.on('data', function (data) {
+            body += data;
+            if (body.length > 1e6)
+                request.connection.destroy();
+        });
+        request.on('end', function () {
+            var post = qs.parse(body);
+        });
+    }
+    var email = request.body['email'];
+	MongoClient.connect(url,function(err,db){
+		if(!err){
+			console.log("We are connected");
+		}
+		var collection = db.collection('user');
+		collection.find({email:email}).toArray(function(err,data){
+			if(data.length != 0){
+				response.status(404).send({"Message":"E-mail exists"});
+				db.close();
+			}
+			else{
+				response.status(200).send({"Message":"Ready for registeration"});
+				db.close();
+			}	
+		});
+	});
 });
 
 app.post('/user/profile',function(request,response){
